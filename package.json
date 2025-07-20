@@ -11,7 +11,7 @@
 	"exports": {
 		".": "./index.js"
 	},
-	"private": true,
+	"license": "MIT",
 	"scripts": {
 		"lint": "eslint ",
 		"eslint": "eslint --fix ./"
