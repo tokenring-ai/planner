@@ -1,6 +1,6 @@
 import MemoryService from "@token-ring/memory/MemoryService";
 import ModelRegistry from "@token-ring/ai-client/ModelRegistry";
-import { z } from "zod";
+import {z} from "zod";
 import {Registry} from "@token-ring/registry";
 
 // Define the schema the model should follow when generating a plan

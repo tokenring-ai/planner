@@ -9,11 +9,11 @@
 		"@token-ring/registry": "0.1.0"
 	},
 	"exports": {
-		".": "./index.js"
+		".": "./index.ts"
 	},
 	"license": "MIT",
 	"scripts": {
-		"lint": "eslint ",
+
 		"eslint": "eslint --fix ./"
 	},
 	"type": "module"
