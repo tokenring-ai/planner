@@ -1,7 +1,7 @@
 import MemoryService from "@token-ring/memory/MemoryService";
 import ModelRegistry from "@token-ring/ai-client/ModelRegistry";
 import {z} from "zod";
-import {Registry} from "@token-ring/registry";
+import type {Registry} from "@token-ring/registry";
 
 // Define the schema the model should follow when generating a plan
 const TaskPlan = z.object({
@@ -44,7 +44,7 @@ export async function execute(
 
 	const [json] = (await client.generateObject(
 		{
-			input: [
+			messages: [
 				{
 					role: "system",
 					content:
