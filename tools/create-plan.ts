@@ -24,7 +24,6 @@ export type CreatePlanArgs = {
 	maxSubtasks?: number;
 };
 
-
 // Shape we expect back from the model; keep it loose to avoid over-constraining
 type GeneratedTaskPlan = {
 	subtasks?: Array<string | { [k: string]: unknown } | unknown>;
@@ -36,40 +35,45 @@ type GeneratedTaskPlan = {
 export async function execute(
 	{ task, maxSubtasks = 10 }: CreatePlanArgs,
 	registry: Registry,
-): Promise<string> {
-	const memoryService = registry.requireFirstServiceByType(MemoryService);
-	const modelRegistry = registry.requireFirstServiceByType(ModelRegistry);
+): Promise<string | { error: string }> {
+	try {
+		const memoryService = registry.requireFirstServiceByType(MemoryService);
+		const modelRegistry = registry.requireFirstServiceByType(ModelRegistry);
 
-	const client = await modelRegistry.chat.getFirstOnlineClient('chat:reasoning>5');
+		const client = await modelRegistry.chat.getFirstOnlineClient('chat:reasoning>5');
 
-	const [json] = (await client.generateObject(
-		{
-			messages: [
-				{
-					role: "system",
-					content:
-						"You are an expert planner. Break the user's task into atomic subtasks.",
-				},
-				{
-					role: "user",
-					content: `Task: "${task}". Break this task into clear, atomic subtasks.`,
-				},
-			],
-			schema: TaskPlan,
-		},
-		registry,
-	)) as [GeneratedTaskPlan, ...unknown[]];
+		const [json] = (await client.generateObject(
+			{
+				messages: [
+					{
+						role: "system",
+						content:
+							"You are an expert planner. Break the user's task into atomic subtasks.",
+					},
+					{
+						role: "user",
+						content: `Task: "${task}". Break this task into clear, atomic subtasks.`,
+					},
+				],
+				schema: TaskPlan,
+			},
+			registry,
+		)) as [GeneratedTaskPlan, ...unknown[]];
 
-	if (json && Array.isArray((json as any).subtasks)) {
-		// Store the main task and subtasks in attention items
-		const type = `Current Task Plan for ${task}`;
-		for (const subtask of (json as any).subtasks as any[]) {
-			memoryService.pushAttentionItem(type, String(subtask));
+		if (json && Array.isArray((json as any).subtasks)) {
+			// Store the main task and subtasks in attention items
+			const type = `Current Task Plan for ${task}`;
+			for (const subtask of (json as any).subtasks as any[]) {
+				memoryService.pushAttentionItem(type, String(subtask));
+			}
+			memoryService.spliceAttentionItems(type, 0, maxSubtasks);
 		}
-		memoryService.spliceAttentionItems(type, 0, maxSubtasks);
-	}
 
-	return JSON.stringify(json, null, 2);
+		// Return the generated plan as JSON string without tool name prefix
+		return JSON.stringify(json, null, 2);
+	} catch (err: any) {
+		return { error: err?.message ?? String(err) };
+	}
 }
 
 export const description =
