@@ -1,7 +1,10 @@
 import ModelRegistry from "@token-ring/ai-client/ModelRegistry";
 import MemoryService from "@token-ring/memory/MemoryService";
-import type {Registry} from "@token-ring/registry";
-import {z} from "zod";
+import type { Registry } from "@token-ring/registry";
+import { z } from "zod";
+
+// Export tool name for registration and error messages
+export const name = "planner/create-plan";
 
 // Define the schema the model should follow when generating a plan
 const TaskPlan = z.object({
@@ -33,9 +36,9 @@ type GeneratedTaskPlan = {
  * Planner tool: breaks down a task into subtasks using AI planning.
  */
 export async function execute(
-  {task, maxSubtasks = 10}: CreatePlanArgs,
+  { task, maxSubtasks = 10 }: CreatePlanArgs,
   registry: Registry,
-): Promise<string | { error: string }> {
+): Promise<string> {
   try {
     const memoryService = registry.requireFirstServiceByType(MemoryService);
     const modelRegistry = registry.requireFirstServiceByType(ModelRegistry);
@@ -72,7 +75,8 @@ export async function execute(
     // Return the generated plan as JSON string without tool name prefix
     return JSON.stringify(json, null, 2);
   } catch (err: any) {
-    return {error: err?.message ?? String(err)};
+    // Throw errors with tool name prefix for consistency
+    throw new Error(`[${name}] ${err?.message ?? String(err)}`);
   }
 }
 
