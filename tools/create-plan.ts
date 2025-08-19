@@ -1,7 +1,7 @@
 import ModelRegistry from "@token-ring/ai-client/ModelRegistry";
 import MemoryService from "@token-ring/memory/MemoryService";
-import type { Registry } from "@token-ring/registry";
-import { z } from "zod";
+import type {Registry} from "@token-ring/registry";
+import {z} from "zod";
 
 // Export tool name for registration and error messages
 export const name = "planner/create-plan";
@@ -36,7 +36,7 @@ type GeneratedTaskPlan = {
  * Planner tool: breaks down a task into subtasks using AI planning.
  */
 export async function execute(
-  { task, maxSubtasks = 10 }: CreatePlanArgs,
+  {task, maxSubtasks = 10}: CreatePlanArgs,
   registry: Registry,
 ): Promise<string> {
   try {
@@ -47,6 +47,7 @@ export async function execute(
 
     const [json] = (await client.generateObject(
       {
+        tools: {},
         messages: [
           {
             role: "system",
@@ -83,7 +84,7 @@ export async function execute(
 export const description =
   "Breaks a user-provided task into a numbered list of atomic subtasks.";
 
-export const parameters = z.object({
+export const inputSchema = z.object({
   task: z.string().describe("The high-level task or project to break down."),
   maxSubtasks: z
     .number()
